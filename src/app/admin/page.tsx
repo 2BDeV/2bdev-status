@@ -13,7 +13,7 @@ export default function AdminPage() {
   const [override, setOverride] = useState<OverrideStatus>({});
   const [loading, setLoading] = useState(true);
 
-  // ✅ Hook mindig a komponens elején
+  // ✅ useEffect a komponens tetején, nem feltételesen
   useEffect(() => {
     if (status === "loading") return;
 
