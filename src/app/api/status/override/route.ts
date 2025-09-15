@@ -15,14 +15,14 @@ const DEFAULT_STATUS: OverrideStatus = {
   "Backup oldal": "online",
 };
 
-// GET endpoint: lekéri a státuszokat
+// GET endpoint
 export async function GET() {
-  const data = await redis.get("status-overrides");
-  const overrides = data ? JSON.parse(data) : {};
+  const data = await redis.get("status-overrides"); // string | null
+  const overrides: OverrideStatus = data ? JSON.parse(data) : {}; // most már OK
   return NextResponse.json({ ...DEFAULT_STATUS, ...overrides });
 }
 
-// POST endpoint: frissíti a státuszokat
+// POST endpoint
 export async function POST(req: Request) {
   const newOverrides: OverrideStatus = await req.json();
   await redis.set("status-overrides", JSON.stringify(newOverrides));
