@@ -4,11 +4,6 @@ import { useSession, signOut } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type SiteStatus = {
-  name: string;
-  online: boolean;
-};
-
 type OverrideStatus = {
   [key: string]: "online" | "maintenance" | "offline";
 };
@@ -18,11 +13,15 @@ export default function AdminPage() {
   const [override, setOverride] = useState<OverrideStatus>({});
   const [loading, setLoading] = useState(true);
 
-  if (status === "loading") return <p>Betöltés...</p>;
-  if (!session) redirect("/login");
-
-  // Lekérjük az override státuszokat
+  // ✅ Hook mindig a komponens elején
   useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      redirect("/login");
+      return;
+    }
+
     async function fetchOverride() {
       try {
         const res = await fetch("/api/status/override");
@@ -36,21 +35,20 @@ export default function AdminPage() {
     }
 
     fetchOverride();
-  }, []);
+  }, [session, status]);
+
+  if (loading || status === "loading") return <p>Betöltés...</p>;
 
   async function updateStatus(siteName: string, newStatus: "online" | "maintenance" | "offline") {
     const updated = { ...override, [siteName]: newStatus };
     setOverride(updated);
 
-    // Küldés a szerverre
     await fetch("/api/status/override", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated),
     });
   }
-
-  if (loading) return <p>Betöltés...</p>;
 
   return (
     <div className="p-6 min-h-screen bg-gray-900 text-gray-100">
