@@ -13,7 +13,7 @@ export default function AdminPage() {
   const [override, setOverride] = useState<OverrideStatus>({});
   const [loading, setLoading] = useState(true);
 
-  // ✅ useEffect a komponens tetején, nem feltételesen
+  // ✅ Hook mindig meghívódik
   useEffect(() => {
     if (status === "loading") return;
 
@@ -53,7 +53,9 @@ export default function AdminPage() {
   return (
     <div className="p-6 min-h-screen bg-gray-900 text-gray-100">
       <h1 className="text-3xl font-bold mb-4">Admin panel</h1>
-      <p className="mb-6">Üdv, {session.user?.name}!</p>
+      <p className="mb-6">
+        Üdv, {session?.user?.name ?? "Admin"}!
+      </p>
 
       <div className="bg-gray-800 p-6 rounded shadow-md">
         <h2 className="text-xl font-semibold mb-4">Oldalak státusza</h2>
