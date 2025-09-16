@@ -3,18 +3,24 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 
-type OverrideStatus = { [key: string]: "online" | "maintenance" | "offline" };
+type SiteStatus = "online" | "maintenance" | "offline";
+
+type Site = {
+  name: string;
+  url: string;
+  status: SiteStatus;
+};
 
 export default function HomePage() {
-  const [override, setOverride] = useState<OverrideStatus>({});
+  const [statusList, setStatusList] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStatus() {
       try {
-        const res = await fetch("/api/status/override");
-        const data: OverrideStatus = await res.json();
-        setOverride(data);
+        const res = await fetch("/api/status");
+        const data: Site[] = await res.json();
+        setStatusList(data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -29,8 +35,8 @@ export default function HomePage() {
 
   if (loading) return <p className="text-center mt-10 text-gray-300">Státusz betöltése...</p>;
 
-  const offlineSites = Object.entries(override).filter(([, status]) => status === "offline");
-  const maintenanceSites = Object.entries(override).filter(([, status]) => status === "maintenance");
+  const offlineSites = statusList.filter((site) => site.status === "offline");
+  const maintenanceSites = statusList.filter((site) => site.status === "maintenance");
 
   return (
     <div className="p-6 min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center">
@@ -40,8 +46,8 @@ export default function HomePage() {
           <div>
             <strong>Figyelem!</strong> A következő oldal(ak) teljesen offline:
             <ul className="list-disc list-inside ml-5 mt-1">
-              {offlineSites.map(([name]) => (
-                <li key={name}>{name}</li>
+              {offlineSites.map((site) => (
+                <li key={site.name}>{site.name}</li>
               ))}
             </ul>
           </div>
@@ -54,8 +60,8 @@ export default function HomePage() {
           <div>
             <strong>Figyelem!</strong> A következő oldal(ak) karbantartás alatt áll:
             <ul className="list-disc list-inside ml-5 mt-1">
-              {maintenanceSites.map(([name]) => (
-                <li key={name}>{name}</li>
+              {maintenanceSites.map((site) => (
+                <li key={site.name}>{site.name}</li>
               ))}
             </ul>
           </div>
@@ -65,31 +71,37 @@ export default function HomePage() {
       <h1 className="text-4xl font-bold mb-6 text-center">Oldal státuszok</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
-        {Object.entries(override).map(([name, status]) => {
-          const statusText =
-            status === "online"
-              ? "Elérhető"
-              : status === "maintenance"
-              ? "Karbantartás alatt"
-              : "Offline";
+        {statusList.map((site) => {
+          let statusText = "";
+          let colorClass = "";
+          let icon = null;
 
-          const colorClass =
-            status === "online"
-              ? "text-green-400"
-              : status === "maintenance"
-              ? "text-yellow-400"
-              : "text-red-600";
-
-          const icon =
-            status === "online"
-              ? <CheckCircle size={20} className="inline mr-2" />
-              : <AlertTriangle size={20} className="inline mr-2" />;
+          switch (site.status) {
+            case "online":
+              statusText = "Elérhető";
+              colorClass = "text-green-400";
+              icon = <CheckCircle size={20} className="inline mr-2" />;
+              break;
+            case "maintenance":
+              statusText = "Karbantartás alatt";
+              colorClass = "text-yellow-400";
+              icon = <AlertTriangle size={20} className="inline mr-2" />;
+              break;
+            case "offline":
+              statusText = "Offline";
+              colorClass = "text-red-600";
+              icon = <AlertTriangle size={20} className="inline mr-2" />;
+              break;
+          }
 
           return (
-            <div key={name} className="bg-gray-800 p-4 rounded-lg shadow-md flex items-center gap-3 hover:shadow-xl transition">
+            <div
+              key={site.name}
+              className="bg-gray-800 p-4 rounded-lg shadow-md flex items-center gap-3 hover:shadow-xl transition"
+            >
               {icon}
               <span className={`${colorClass} font-semibold`}>
-                {name}: {statusText}
+                {site.name}: {statusText}
               </span>
             </div>
           );

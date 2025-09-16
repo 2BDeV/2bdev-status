@@ -28,10 +28,19 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Partial<OverrideStatus>;
-    const existingData = await redis.get("status-overrides");
-    const existing: OverrideStatus = existingData ? JSON.parse(existingData as string) : DEFAULT_STATUS;
 
-    const updated: OverrideStatus = { ...existing, ...body };
+    const existingData = await redis.get("status-overrides");
+    const existing: OverrideStatus = existingData
+      ? JSON.parse(existingData as string)
+      : DEFAULT_STATUS;
+
+    const filteredBody: OverrideStatus = {} as OverrideStatus;
+    for (const key in body) {
+      if (body[key] !== undefined) filteredBody[key] = body[key]!;
+    }
+
+    const updated: OverrideStatus = { ...existing, ...filteredBody };
+
     await redis.set("status-overrides", JSON.stringify(updated));
 
     return NextResponse.json(updated);

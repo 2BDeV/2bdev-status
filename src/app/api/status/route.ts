@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
-
 type SiteStatus = "online" | "maintenance" | "offline";
 
 const sites = [
   { name: "Main oldal", url: "https://2bdevon.top" },
   { name: "Backup oldal", url: "https://backup.2bdev.bot.nu" },
 ];
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
 
 export async function GET() {
   try {
@@ -38,7 +38,8 @@ export async function GET() {
     );
 
     return NextResponse.json(results);
-  } catch {
+  } catch (err) {
+    console.error(err);
     return NextResponse.json(
       sites.map((site) => ({ name: site.name, url: site.url, status: "offline" as SiteStatus }))
     );
