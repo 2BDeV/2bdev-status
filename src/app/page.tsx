@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 
-type SiteStatus = { name: string; online: boolean };
 type OverrideStatus = { [key: string]: "online" | "maintenance" | "offline" };
 
 export default function HomePage() {
@@ -67,9 +66,24 @@ export default function HomePage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
         {Object.entries(override).map(([name, status]) => {
-          let statusText = status === "online" ? "Elérhető" : status === "maintenance" ? "Karbantartás alatt" : "Offline";
-          const colorClass = status === "online" ? "text-green-400" : status === "maintenance" ? "text-yellow-400" : "text-red-600";
-          const icon = status === "online" ? <CheckCircle size={20} className="inline mr-2" /> : <AlertTriangle size={20} className="inline mr-2" />;
+          const statusText =
+            status === "online"
+              ? "Elérhető"
+              : status === "maintenance"
+              ? "Karbantartás alatt"
+              : "Offline";
+
+          const colorClass =
+            status === "online"
+              ? "text-green-400"
+              : status === "maintenance"
+              ? "text-yellow-400"
+              : "text-red-600";
+
+          const icon =
+            status === "online"
+              ? <CheckCircle size={20} className="inline mr-2" />
+              : <AlertTriangle size={20} className="inline mr-2" />;
 
           return (
             <div key={name} className="bg-gray-800 p-4 rounded-lg shadow-md flex items-center gap-3 hover:shadow-xl transition">

@@ -14,7 +14,6 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-// GET → lekérjük a státuszokat
 export async function GET() {
   try {
     const data = await redis.get("status-overrides");
@@ -26,7 +25,6 @@ export async function GET() {
   }
 }
 
-// POST → frissítjük a státuszokat
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Partial<OverrideStatus>;
