@@ -22,7 +22,6 @@ export async function GET() {
     const data = await redis.get("status-overrides"); // string | null
 
     if (!data) {
-
       return NextResponse.json(DEFAULT_STATUS);
     }
 
@@ -43,7 +42,11 @@ export async function POST(req: Request) {
       ? (JSON.parse(existingData as string) as OverrideStatus)
       : DEFAULT_STATUS;
 
-    const updated: OverrideStatus = { ...existing, ...body };
+    // Here is the update:
+    const updated: OverrideStatus = {} as OverrideStatus;
+    for (const key of Object.keys({ ...existing, ...body })) {
+      updated[key] = (body[key] ?? existing[key]) as SiteStatus;
+    }
 
     await redis.set("status-overrides", JSON.stringify(updated));
 
