@@ -4,9 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type OverrideStatus = {
-  [key: string]: "online" | "maintenance" | "offline";
-};
+type OverrideStatus = { [key: string]: "online" | "maintenance" | "offline" };
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -38,8 +36,6 @@ export default function AdminPage() {
   if (loading || status === "loading") return <p>Betöltés...</p>;
 
   async function updateStatus(siteName: string, newStatus: "online" | "maintenance" | "offline") {
-    if (!override[siteName]) return;
-
     const updated = { ...override, [siteName]: newStatus };
     setOverride(updated);
 
