@@ -7,32 +7,25 @@ type OverrideStatus = {
   [key: string]: SiteStatus;
 };
 
-const DEFAULT_STATUS: OverrideStatus = {
-  main: "online",
-  backup: "online",
-};
-
+// Redis kliens
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
+// GET → visszaadja a Redis-ben lévő státuszokat
 export async function GET() {
   try {
-    const data = await redis.get("status-overrides"); // string | null
-
-    if (!data) {
-      return NextResponse.json(DEFAULT_STATUS);
-    }
-
-    const overrides: OverrideStatus = JSON.parse(data as string);
+    const data = await redis.get("status-overrides");
+    const overrides: OverrideStatus = data ? (JSON.parse(data as string) as OverrideStatus) : {};
     return NextResponse.json(overrides);
   } catch (err) {
     console.error(err);
-    return NextResponse.json(DEFAULT_STATUS, { status: 500 });
+    return NextResponse.json({}, { status: 500 });
   }
 }
 
+// POST → frissíti a Redis-ben lévő státuszokat
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Partial<OverrideStatus>;
@@ -40,12 +33,14 @@ export async function POST(req: Request) {
     const existingData = await redis.get("status-overrides");
     const existing: OverrideStatus = existingData
       ? (JSON.parse(existingData as string) as OverrideStatus)
-      : DEFAULT_STATUS;
+      : {};
 
-    // Here is the update:
-    const updated: OverrideStatus = {} as OverrideStatus;
-    for (const key of Object.keys({ ...existing, ...body })) {
-      updated[key] = (body[key] ?? existing[key]) as SiteStatus;
+    // Csak a meglévő kulcsokat frissítjük
+    const updated: OverrideStatus = { ...existing };
+    for (const key of Object.keys(body)) {
+      if (existing[key] !== undefined) {
+        updated[key] = body[key]!;
+      }
     }
 
     await redis.set("status-overrides", JSON.stringify(updated));

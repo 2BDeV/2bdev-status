@@ -13,10 +13,8 @@ export default function AdminPage() {
   const [override, setOverride] = useState<OverrideStatus>({});
   const [loading, setLoading] = useState(true);
 
-  // ✅ Hook mindig meghívódik
   useEffect(() => {
     if (status === "loading") return;
-
     if (!session) {
       redirect("/login");
       return;
@@ -40,22 +38,22 @@ export default function AdminPage() {
   if (loading || status === "loading") return <p>Betöltés...</p>;
 
   async function updateStatus(siteName: string, newStatus: "online" | "maintenance" | "offline") {
+    if (!override[siteName]) return;
+
     const updated = { ...override, [siteName]: newStatus };
     setOverride(updated);
 
     await fetch("/api/status/override", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updated),
+      body: JSON.stringify({ [siteName]: newStatus }),
     });
   }
 
   return (
     <div className="p-6 min-h-screen bg-gray-900 text-gray-100">
       <h1 className="text-3xl font-bold mb-4">Admin panel</h1>
-      <p className="mb-6">
-        Üdv, {session?.user?.name ?? "Admin"}!
-      </p>
+      <p className="mb-6">Üdv, {session?.user?.name ?? "Admin"}!</p>
 
       <div className="bg-gray-800 p-6 rounded shadow-md">
         <h2 className="text-xl font-semibold mb-4">Oldalak státusza</h2>

@@ -13,26 +13,19 @@ type OverrideStatus = {
 };
 
 export default function HomePage() {
-  const [statusList, setStatusList] = useState<SiteStatus[]>([]);
+  const [statusList, setStatusList] = useState<SiteStatus[]>([
+    { name: "Main oldal", online: true },
+    { name: "Backup oldal", online: true },
+  ]);
   const [override, setOverride] = useState<OverrideStatus>({});
   const [loading, setLoading] = useState(true);
 
-  // Lekérjük az aktuális státuszokat a backendből
   useEffect(() => {
     async function fetchStatus() {
       try {
-        // Itt feltételezzük, hogy a backend mindig a Redis-ből adja az adatot
-        const res = await fetch("/api/status/override");
-        const data: OverrideStatus = await res.json();
-
-        // Átalakítjuk tömbbé a vizualizációhoz
-        const list: SiteStatus[] = Object.entries(data).map(([name, status]) => ({
-          name,
-          online: status === "online",
-        }));
-
-        setStatusList(list);
-        setOverride(data);
+        const ovRes = await fetch("/api/status/override");
+        const ovData: OverrideStatus = await ovRes.json();
+        setOverride(ovData);
       } catch (err) {
         console.error(err);
       } finally {
@@ -41,28 +34,17 @@ export default function HomePage() {
     }
 
     fetchStatus();
-    const interval = setInterval(fetchStatus, 15000); // 15 mp
+    const interval = setInterval(fetchStatus, 15000);
     return () => clearInterval(interval);
   }, []);
 
-  if (loading)
-    return (
-      <p className="text-center mt-10 text-gray-300">
-        Státusz betöltése...
-      </p>
-    );
+  if (loading) return <p className="text-center mt-10 text-gray-300">Státusz betöltése...</p>;
 
-  // Offline és maintenance oldalak
-  const offlineSites = statusList.filter(
-    (site) => override[site.name] === "offline"
-  );
-  const maintenanceSites = statusList.filter(
-    (site) => override[site.name] === "maintenance"
-  );
+  const offlineSites = statusList.filter((site) => override[site.name] === "offline");
+  const maintenanceSites = statusList.filter((site) => override[site.name] === "maintenance");
 
   return (
     <div className="p-6 min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center">
-      {/* 🔴 Offline banner */}
       {offlineSites.length > 0 && (
         <div className="bg-red-700 text-white p-5 mb-4 rounded-lg shadow-lg w-full max-w-2xl flex items-start gap-3">
           <AlertTriangle size={28} />
@@ -77,7 +59,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 🟡 Karbantartás banner */}
       {maintenanceSites.length > 0 && (
         <div className="bg-yellow-500 text-gray-900 p-5 mb-6 rounded-lg shadow-lg w-full max-w-2xl flex items-start gap-3">
           <AlertTriangle size={28} />
@@ -92,14 +73,11 @@ export default function HomePage() {
         </div>
       )}
 
-      <h1 className="text-4xl font-bold mb-6 text-center">
-        Oldal státuszok
-      </h1>
+      <h1 className="text-4xl font-bold mb-6 text-center">Oldal státuszok</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
         {statusList.map((site) => {
           const siteOverride = override[site.name] || "online";
-
           let statusText = "Elérhető";
           if (siteOverride === "maintenance") statusText = "Karbantartás alatt";
           if (siteOverride === "offline") statusText = "Offline";
